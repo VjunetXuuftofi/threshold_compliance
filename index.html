@@ -33,7 +33,7 @@
   <b>How much would a company save if they could find a way to train a model using less compute?</b>
   <div>
     <label for="savings-window">If a company found a way to reduce the compute cost from</label>
-    <input type="range" id="savings-window" min="25" max="30" step="0.1" value="27">
+    <input type="range" id="savings-window" min="25" max="30" step="0.1" value="26.5">
     <span id="savings-window-value"></span>
   </div>
 
@@ -172,7 +172,7 @@
       const originalCost = Math.pow(10, savingsWindow - 26) * 7e7;
       const reducedCost = Math.pow(10, savingsWindow - 1 - 26) * 7e7;
       const savingsZeroCompliance = originalCost - reducedCost;
-      const savingsWithCompliance = savingsWindow < threshold ? savingsZeroCompliance : savingsZeroCompliance + complianceCost;
+      const savingsWithCompliance = savingsWindow < threshold | savingsWindow - 1 >= threshold  ? savingsZeroCompliance : savingsZeroCompliance + complianceCost;
 
       d3.select("#savings-zero-compliance").text(`$${(savingsZeroCompliance / 1e6).toFixed(2)}M`);
       d3.select("#savings-with-compliance").text(`$${(savingsWithCompliance / 1e6).toFixed(2)}M`);
