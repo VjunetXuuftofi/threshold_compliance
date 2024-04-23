@@ -29,11 +29,16 @@
     <label for="compliance-cost">Compliance Cost Above Threshold(millions):</label>
     <input type="number" id="compliance-cost" min="0" step="1" value="10">
   </div>
+
+  <div>
+  <p>Cost to train a model at the threshold: <span id="cost-at-threshold"></span></p>
+  </div>
+
   <br>
   <b>How much would a company save if they could find a way to train a model using less compute?</b>
   <div>
     <label for="savings-window">If a company found a way to reduce the compute cost from</label>
-    <input type="range" id="savings-window" min="25" max="30" step="0.1" value="26.5">
+    <input type="range" id="savings-window" min="0.1" max="6" step="0.1" value="0.9">
     <span id="savings-window-value"></span>
   </div>
 
@@ -41,7 +46,7 @@
   <p>They would save <span id="savings-zero-compliance"></span> if the compliance cost were zero.</p>
   <p>With your specified compliance cost, their savings would be <span id="savings-with-compliance"></span></p>
     <br>
-    For illustrative purposes only. Numbers are not verified. Personal work does not represent any employer.
+    For illustrative purposes only. Numbers are not verified.
 </div>
 
   <script>
@@ -138,6 +143,9 @@
       thresholdLine.attr("x1", xScale(Math.pow(10, threshold)))
                    .attr("x2", xScale(Math.pow(10, threshold)));
 
+      const costAtThreshold = Math.pow(10, threshold - 26) * 7e7;
+      d3.select("#cost-at-threshold").text(`$${((costAtThreshold + complianceCost) / 1e6).toFixed(2)}M`);
+
       updateThresholdValue();
       calculateSavings();
     }
@@ -159,20 +167,25 @@
 
     // Update the savings window value display
     function updateSavingsWindowValue() {
+      const threshold = +d3.select("#threshold").property("value");
       const savingsWindow = +d3.select("#savings-window").property("value");
-      d3.select("#savings-window-value").text(`10^${savingsWindow.toFixed(1)} FLOP to 10^${(savingsWindow - 1).toFixed(1)} FLOP`);
+      const upperBound = threshold + savingsWindow;
+
+      d3.select("#savings-window-value").text(`From 10^${upperBound.toFixed(1)} FLOP to 10^${(threshold - 0.1).toFixed(1)} FLOP`);
     }
 
+    // Calculate the savings
     // Calculate the savings
     function calculateSavings() {
       const threshold = +d3.select("#threshold").property("value");
       const complianceCost = +d3.select("#compliance-cost").property("value") * 1e6;
       const savingsWindow = +d3.select("#savings-window").property("value");
+      const upperBound = threshold + savingsWindow;
 
-      const originalCost = Math.pow(10, savingsWindow - 26) * 7e7;
-      const reducedCost = Math.pow(10, savingsWindow - 1 - 26) * 7e7;
+      const originalCost = Math.pow(10, upperBound - 26) * 7e7;
+      const reducedCost = Math.pow(10, threshold - 0.1 - 26) * 7e7;
       const savingsZeroCompliance = originalCost - reducedCost;
-      const savingsWithCompliance = savingsWindow < threshold | savingsWindow - 1 >= threshold  ? savingsZeroCompliance : savingsZeroCompliance + complianceCost;
+      const savingsWithCompliance = originalCost >= Math.pow(10, threshold - 26) * 7e7 ? savingsZeroCompliance + complianceCost : savingsZeroCompliance;
 
       d3.select("#savings-zero-compliance").text(`$${(savingsZeroCompliance / 1e6).toFixed(2)}M`);
       d3.select("#savings-with-compliance").text(`$${(savingsWithCompliance / 1e6).toFixed(2)}M`);
@@ -180,13 +193,16 @@
 
     // Update the chart and savings when the savings window changes
     function updateChartAndSavings() {
+      const threshold = +d3.select("#threshold").property("value");
       const savingsWindow = +d3.select("#savings-window").property("value");
+      const upperBound = threshold + savingsWindow;
 
-      savingsWindowLine1.attr("x1", xScale(Math.pow(10, savingsWindow)))
-                        .attr("x2", xScale(Math.pow(10, savingsWindow)));
+      savingsWindowLine1.attr("x1", xScale(Math.pow(10, threshold - 0.1)))
+                        .attr("x2", xScale(Math.pow(10, threshold - 0.1)));
 
-      savingsWindowLine2.attr("x1", xScale(Math.pow(10, savingsWindow - 1)))
-                        .attr("x2", xScale(Math.pow(10, savingsWindow - 1)));
+      savingsWindowLine2.attr("x1", xScale(Math.pow(10, upperBound)))
+                        .attr("x2", xScale(Math.pow(10, upperBound)));
+
       updateSavingsWindowValue();
       updateChart();
       calculateSavings();
@@ -203,8 +219,8 @@
     updateChartAndSavings();
 
     // Update the chart whenever the threshold or compliance cost changes
-    d3.select("#threshold").on("input", updateChart);
-    d3.select("#compliance-cost").on("input", updateChart);
+    d3.select("#threshold").on("input", updateChartAndSavings);
+    d3.select("#compliance-cost").on("input", updateChartAndSavings);
   </script>
 </body>
 </html>
