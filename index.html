@@ -45,9 +45,10 @@
   <div>
   <p>They would save <span id="savings-zero-compliance"></span> if the compliance cost were zero.</p>
   <p>With your specified compliance cost, their savings would be <span id="savings-with-compliance"></span></p>
-    <br>
-    For illustrative purposes only. Numbers are not verified. Training cost estimates are from Jack Clark using NVIDIA H100s.
+    <p>The percentage of savings resulting from avoiding regulation would be <span id="savings-percentage"></span></p>
 </div>
+  <br>
+    For illustrative purposes only. Numbers are not verified. Training cost estimates are from Jack Clark using NVIDIA H100s.
 
   <script>
     // Set up the dimensions and margins of the chart
@@ -171,7 +172,7 @@
       const savingsWindow = +d3.select("#savings-window").property("value");
       const upperBound = threshold + savingsWindow;
 
-      d3.select("#savings-window-value").text(`From 10^${upperBound.toFixed(1)} FLOP to 10^${(threshold - 0.1).toFixed(1)} FLOP`);
+      d3.select("#savings-window-value").text(`10^${upperBound.toFixed(1)} FLOP to 10^${(threshold - 0.1).toFixed(1)} FLOP`);
     }
 
     // Calculate the savings
@@ -189,6 +190,7 @@
 
       d3.select("#savings-zero-compliance").text(`$${(savingsZeroCompliance / 1e6).toFixed(2)}M`);
       d3.select("#savings-with-compliance").text(`$${(savingsWithCompliance / 1e6).toFixed(2)}M`);
+      d3.select("#savings-percentage").text(`${((savingsWithCompliance - savingsZeroCompliance)/savingsWithCompliance*100).toFixed(2)}%`);
     }
 
     // Update the chart and savings when the savings window changes
